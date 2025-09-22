@@ -105,3 +105,6 @@ google-services.json
 *.p8
 *.cer
 *.mobileprovision
+
+# IntelliJ IDEA
+.idea/
