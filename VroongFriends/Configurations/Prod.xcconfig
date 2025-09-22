@@ -1,0 +1,40 @@
+//
+// Prod.xcconfig
+// VroongFriends
+//
+// Production Environment Configuration
+//
+
+#include "Base.xcconfig"
+
+// Flavor
+FLAVOR = prod
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) PROD RELEASE
+
+// Bundle Identifier
+PRODUCT_BUNDLE_IDENTIFIER = com.vroong.friends
+
+// App Name
+DISPLAY_NAME = 부릉프렌즈
+PRODUCT_NAME = VroongFriends
+
+// API Configuration
+API_BASE_URL = https:\/\/api.vroong-friends.com
+SOCKET_URL = wss:\/\/socket.vroong-friends.com
+
+// Code Signing
+CODE_SIGN_STYLE = Manual
+DEVELOPMENT_TEAM = YOUR_TEAM_ID
+PROVISIONING_PROFILE_SPECIFIER = VroongFriends Production
+
+// Release Optimization
+DEBUG_INFORMATION_FORMAT = dwarf-with-dsym
+ENABLE_TESTABILITY = NO
+GCC_OPTIMIZATION_LEVEL = s
+SWIFT_OPTIMIZATION_LEVEL = -O
+SWIFT_COMPILATION_MODE = wholemodule
+
+// Strip Debug Symbols
+COPY_PHASE_STRIP = YES
+STRIP_INSTALLED_PRODUCT = YES
+STRIP_SWIFT_SYMBOLS = YES

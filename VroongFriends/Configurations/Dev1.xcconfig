@@ -1,0 +1,34 @@
+//
+// Dev1.xcconfig
+// VroongFriends
+//
+// Development 1 Environment Configuration
+//
+
+#include "Base.xcconfig"
+
+// Flavor
+FLAVOR = dev1
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) DEV1
+
+// Bundle Identifier
+PRODUCT_BUNDLE_IDENTIFIER = com.vroong.friends.dev1
+
+// App Name
+DISPLAY_NAME = 프렌즈 Dev1
+PRODUCT_NAME = VroongFriends-Dev1
+
+// API Configuration
+API_BASE_URL = https:\/\/dev1-api.vroong-friends.com
+SOCKET_URL = wss:\/\/dev1-socket.vroong-friends.com
+
+// Code Signing
+CODE_SIGN_STYLE = Manual
+DEVELOPMENT_TEAM = YOUR_TEAM_ID
+PROVISIONING_PROFILE_SPECIFIER = VroongFriends Dev1
+
+// Enable Debug
+DEBUG_INFORMATION_FORMAT = dwarf-with-dsym
+ENABLE_TESTABILITY = YES
+GCC_OPTIMIZATION_LEVEL = 0
+SWIFT_OPTIMIZATION_LEVEL = -Onone

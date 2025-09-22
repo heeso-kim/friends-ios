@@ -1,0 +1,216 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1A0001 /* VroongFriendsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000 /* VroongFriendsApp.swift */; };
+		1A0003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1A0002 /* Assets.xcassets */; };
+		1A0004 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1A0003 /* Preview Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		1A0000 /* VroongFriendsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VroongFriendsApp.swift; sourceTree = "<group>"; };
+		1A0001 /* VroongFriends.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VroongFriends.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1A0002 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		1A0003 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		1A0004 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1A0005 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1A0006 = {
+			isa = PBXGroup;
+			children = (
+				1A0007 /* VroongFriends */,
+				1A0008 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		1A0007 /* VroongFriends */ = {
+			isa = PBXGroup;
+			children = (
+				1A0000 /* VroongFriendsApp.swift */,
+				1A0009 /* Core */,
+				1A0010 /* Domain */,
+				1A0011 /* Data */,
+				1A0012 /* Presentation */,
+				1A0013 /* Infrastructure */,
+				1A0014 /* Resources */,
+				1A0015 /* Configurations */,
+			);
+			path = VroongFriends;
+			sourceTree = "<group>";
+		};
+		1A0008 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1A0001 /* VroongFriends.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1A0016 /* VroongFriends */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1A0017 /* Build configuration list for PBXNativeTarget "VroongFriends" */;
+			buildPhases = (
+				1A0018 /* Sources */,
+				1A0005 /* Frameworks */,
+				1A0019 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = VroongFriends;
+			productName = VroongFriends;
+			productReference = 1A0001 /* VroongFriends.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1A0020 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					1A0016 = {
+						CreatedOnToolsVersion = 16.2.0;
+					};
+				};
+			};
+			buildConfigurationList = 1A0021 /* Build configuration list for PBXProject "VroongFriends" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = ko;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				ko,
+			);
+			mainGroup = 1A0006;
+			productRefGroup = 1A0008 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1A0016 /* VroongFriends */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1A0019 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A0003 /* Assets.xcassets in Resources */,
+				1A0004 /* Preview Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1A0018 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A0001 /* VroongFriendsApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1A0022 /* Dev1 */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1A0023 /* Dev1.xcconfig */;
+			buildSettings = {
+			};
+			name = Dev1;
+		};
+		1A0024 /* QA1 */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1A0025 /* QA1.xcconfig */;
+			buildSettings = {
+			};
+			name = QA1;
+		};
+		1A0026 /* QA2 */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1A0027 /* QA2.xcconfig */;
+			buildSettings = {
+			};
+			name = QA2;
+		};
+		1A0028 /* QA3 */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1A0029 /* QA3.xcconfig */;
+			buildSettings = {
+			};
+			name = QA3;
+		};
+		1A0030 /* QA4 */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1A0031 /* QA4.xcconfig */;
+			buildSettings = {
+			};
+			name = QA4;
+		};
+		1A0032 /* Prod */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1A0033 /* Prod.xcconfig */;
+			buildSettings = {
+			};
+			name = Prod;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1A0017 /* Build configuration list for PBXNativeTarget "VroongFriends" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1A0022 /* Dev1 */,
+				1A0024 /* QA1 */,
+				1A0026 /* QA2 */,
+				1A0028 /* QA3 */,
+				1A0030 /* QA4 */,
+				1A0032 /* Prod */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Dev1;
+		};
+		1A0021 /* Build configuration list for PBXProject "VroongFriends" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1A0022 /* Dev1 */,
+				1A0024 /* QA1 */,
+				1A0026 /* QA2 */,
+				1A0028 /* QA3 */,
+				1A0030 /* QA4 */,
+				1A0032 /* Prod */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Dev1;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 1A0020 /* Project object */;
+}

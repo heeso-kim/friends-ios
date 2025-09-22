@@ -1,0 +1,206 @@
+# Fastfile for VroongFriends iOS
+
+default_platform(:ios)
+
+platform :ios do
+
+  # Environment setup
+  before_all do
+    ensure_git_status_clean
+    cocoapods
+  end
+
+  # MARK: - Development
+
+  desc "Run tests for development"
+  lane :test do
+    run_tests(
+      workspace: "VroongFriends.xcworkspace",
+      scheme: "VroongFriends",
+      devices: ["iPhone 15 Pro"],
+      code_coverage: true,
+      clean: true
+    )
+  end
+
+  # MARK: - Beta Distribution
+
+  desc "Build and upload to TestFlight"
+  lane :beta do
+    # Increment build number
+    increment_build_number(
+      build_number: latest_testflight_build_number + 1
+    )
+
+    # Build the app
+    build_app(
+      workspace: "VroongFriends.xcworkspace",
+      scheme: "VroongFriends",
+      export_method: "app-store",
+      configuration: "Release",
+      clean: true,
+      output_directory: "./build",
+      output_name: "VroongFriends.ipa"
+    )
+
+    # Upload to TestFlight
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      apple_id: ENV["APPLE_ID"],
+      team_id: ENV["TEAM_ID"]
+    )
+
+    # Send Slack notification
+    slack(
+      message: "새로운 베타 버전이 TestFlight에 업로드되었습니다! 🚀",
+      channel: "#ios-releases",
+      success: true,
+      payload: {
+        "Build Number" => get_build_number,
+        "Version" => get_version_number
+      }
+    )
+  end
+
+  # MARK: - Production Release
+
+  desc "Deploy to App Store"
+  lane :release do
+    # Ensure we're on the main branch
+    ensure_git_branch(branch: "main")
+
+    # Run tests first
+    test
+
+    # Increment version
+    increment_version_number(
+      bump_type: "patch" # or minor, major
+    )
+
+    # Build
+    build_app(
+      workspace: "VroongFriends.xcworkspace",
+      scheme: "VroongFriends",
+      export_method: "app-store",
+      configuration: "Release",
+      clean: true
+    )
+
+    # Upload to App Store Connect
+    upload_to_app_store(
+      force: true,
+      skip_metadata: false,
+      skip_screenshots: false,
+      submit_for_review: false,
+      automatic_release: false
+    )
+
+    # Create git tag
+    add_git_tag(
+      tag: "v#{get_version_number}"
+    )
+
+    # Push to remote
+    push_to_git_remote
+
+    # Notify team
+    slack(
+      message: "VroongFriends v#{get_version_number}이 App Store에 제출되었습니다! 🎉",
+      channel: "#ios-releases",
+      success: true
+    )
+  end
+
+  # MARK: - Code Quality
+
+  desc "Run SwiftLint"
+  lane :lint do
+    swiftlint(
+      mode: :lint,
+      path: "VroongFriends/",
+      config_file: ".swiftlint.yml",
+      raise_if_swiftlint_error: true
+    )
+  end
+
+  desc "Format code with SwiftFormat"
+  lane :format do
+    sh("swiftformat ../VroongFriends --config ../.swiftformat")
+  end
+
+  # MARK: - Certificates
+
+  desc "Sync certificates and profiles"
+  lane :sync_certs do
+    match(
+      type: "development",
+      readonly: true
+    )
+
+    match(
+      type: "appstore",
+      readonly: true
+    )
+  end
+
+  desc "Create new certificates and profiles"
+  lane :create_certs do
+    match(
+      type: "development",
+      readonly: false,
+      force_for_new_devices: true
+    )
+
+    match(
+      type: "appstore",
+      readonly: false
+    )
+  end
+
+  # MARK: - Screenshots
+
+  desc "Generate new screenshots"
+  lane :screenshots do
+    capture_screenshots(
+      workspace: "VroongFriends.xcworkspace",
+      scheme: "VroongFriendsUITests"
+    )
+
+    frame_screenshots(
+      white: true
+    )
+  end
+
+  # MARK: - Error Handling
+
+  error do |lane, exception|
+    slack(
+      message: "빌드 실패: #{exception.message}",
+      channel: "#ios-releases",
+      success: false,
+      payload: {
+        "Lane" => lane,
+        "Error" => exception.message,
+        "Branch" => git_branch
+      }
+    )
+  end
+
+  # MARK: - Helper Methods
+
+  desc "Clean build artifacts"
+  lane :clean do
+    clear_derived_data
+    clean_build_artifacts
+  end
+
+  desc "Update dependencies"
+  lane :update_deps do
+    cocoapods(
+      clean_install: true,
+      use_bundle_exec: false
+    )
+
+    sh("swift package update")
+  end
+end

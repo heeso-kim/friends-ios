@@ -1,0 +1,14 @@
+# Appfile for VroongFriends
+
+# App identifier
+app_identifier("com.vroong.friends.ios")
+
+# Apple ID (your Apple Developer account email)
+apple_id(ENV["APPLE_ID"] || "your-email@vroong.com")
+
+# Team ID
+itc_team_id(ENV["ITC_TEAM_ID"] || "123456789")
+team_id(ENV["TEAM_ID"] || "ABCDE12345")
+
+# For more information about the Appfile, see:
+# https://docs.fastlane.tools/advanced/#appfile

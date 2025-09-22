@@ -1,0 +1,135 @@
+# SwiftLint Configuration for VroongFriends
+
+# Paths to include
+included:
+  - VroongFriends
+
+# Paths to exclude
+excluded:
+  - Pods
+  - VroongFriends/Generated
+  - VroongFriendsTests
+  - VroongFriendsUITests
+  - ${DERIVED_DATA}
+
+# Rules configuration
+disabled_rules:
+  - trailing_whitespace # Xcode 자동 포맷팅과 충돌 가능
+  - todo # TODO 주석 허용
+  - line_length # 라인 길이 제한 해제 (SwiftUI 때문에)
+
+opt_in_rules:
+  - attributes
+  - closure_end_indentation
+  - closure_spacing
+  - collection_alignment
+  - contains_over_filter_count
+  - contains_over_filter_is_empty
+  - contains_over_first_not_nil
+  - convenience_type
+  - discouraged_object_literal
+  - empty_collection_literal
+  - empty_count
+  - empty_string
+  - enum_case_associated_values_count
+  - fatal_error_message
+  - first_where
+  - force_unwrapping
+  - implicit_return
+  - joined_default_parameter
+  - last_where
+  - legacy_random
+  - literal_expression_end_indentation
+  - lower_acl_than_parent
+  - multiline_function_chains
+  - multiline_literal_brackets
+  - multiline_parameters
+  - multiline_parameters_brackets
+  - operator_usage_whitespace
+  - overridden_super_call
+  - pattern_matching_keywords
+  - prefer_self_type_over_type_of_self
+  - prefer_zero_over_explicit_init
+  - redundant_nil_coalescing
+  - redundant_type_annotation
+  - sorted_first_last
+  - static_operator
+  - toggle_bool
+  - trailing_closure
+  - unavailable_function
+  - unneeded_parentheses_in_closure_argument
+  - vertical_parameter_alignment_on_call
+  - vertical_whitespace_closing_braces
+  - vertical_whitespace_opening_braces
+  - yoda_condition
+
+# Rule parameters
+force_cast: error
+force_try: error
+
+type_name:
+  min_length: 3
+  max_length: 50
+
+identifier_name:
+  min_length: 2
+  max_length: 50
+  excluded:
+    - id
+    - to
+    - at
+    - on
+    - of
+    - by
+    - up
+    - x
+    - y
+    - z
+
+function_body_length:
+  warning: 60
+  error: 100
+
+type_body_length:
+  warning: 300
+  error: 500
+
+file_length:
+  warning: 600
+  error: 1200
+
+cyclomatic_complexity:
+  warning: 10
+  error: 20
+
+nesting:
+  type_level: 2
+  function_level: 3
+
+# Custom rules
+custom_rules:
+  no_print:
+    name: "Print 사용 금지"
+    message: "print() 대신 Logger를 사용하세요"
+    regex: "(^|\\n| )print\\("
+    severity: warning
+
+  no_nslog:
+    name: "NSLog 사용 금지"
+    message: "NSLog 대신 Logger를 사용하세요"
+    regex: "(^|\\n| )NSLog\\("
+    severity: error
+
+  no_force_unwrap_optionals:
+    name: "Force Unwrap 금지"
+    message: "! 대신 guard let이나 if let을 사용하세요"
+    regex: "((?!swiftlint).)\\!"
+    match_kinds:
+      - identifier
+    severity: warning
+
+  mark_format:
+    name: "MARK 포맷"
+    message: "MARK는 '// MARK: - Description' 형식을 사용하세요"
+    regex: "//[\\s]*MARK:[^\\s-]"
+    severity: warning

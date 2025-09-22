@@ -1,0 +1,49 @@
+//
+// Base.xcconfig
+// VroongFriends
+//
+// Base Configuration for all environments
+//
+
+// iOS Deployment Target
+IPHONEOS_DEPLOYMENT_TARGET = 17.0
+
+// Swift Version
+SWIFT_VERSION = 5.9
+
+// Architectures
+ARCHS = $(ARCHS_STANDARD)
+VALID_ARCHS = arm64
+
+// Build Settings
+CLANG_ENABLE_MODULES = YES
+CLANG_ENABLE_OBJC_ARC = YES
+ENABLE_BITCODE = NO
+
+// Swift Settings
+SWIFT_COMPILATION_MODE = wholemodule
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited)
+
+// Localization
+LOCALIZATION_PREFERS_STRING_CATALOGS = YES
+
+// Asset Catalogs
+ASSET_CATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES
+
+// Frameworks
+FRAMEWORK_SEARCH_PATHS = $(inherited) $(PROJECT_DIR)/Carthage/Build/iOS
+HEADER_SEARCH_PATHS = $(inherited)
+LIBRARY_SEARCH_PATHS = $(inherited)
+
+// Other Linker Flags
+OTHER_LDFLAGS = $(inherited) -ObjC
+
+// Info.plist
+INFOPLIST_FILE = VroongFriends/Resources/Info.plist
+
+// Launch Screen
+LAUNCH_SCREEN_STORYBOARD = LaunchScreen
+
+// Marketing Version
+MARKETING_VERSION = 1.0.0
+CURRENT_PROJECT_VERSION = 1

@@ -1,0 +1,536 @@
+// Multi-flavor Jenkinsfile for VroongFriends iOS
+// Supports: dev1, qa1, qa2, qa3, qa4, prod
+
+@Library('ios-shared-library') _
+
+pipeline {
+    agent {
+        label 'macos-m1'
+    }
+
+    parameters {
+        choice(
+            name: 'FLAVOR',
+            choices: ['dev1', 'qa1', 'qa2', 'qa3', 'qa4', 'prod'],
+            description: 'Build flavor to deploy'
+        )
+        choice(
+            name: 'BUILD_TYPE',
+            choices: ['debug', 'release', 'testflight', 'appstore'],
+            description: 'Build type'
+        )
+        booleanParam(
+            name: 'RUN_TESTS',
+            defaultValue: true,
+            description: 'Run unit and UI tests'
+        )
+        booleanParam(
+            name: 'CLEAN_BUILD',
+            defaultValue: false,
+            description: 'Clean build folder before building'
+        )
+        string(
+            name: 'BRANCH',
+            defaultValue: 'develop',
+            description: 'Git branch to build from'
+        )
+    }
+
+    environment {
+        XCODE_VERSION = '16.2'
+        LC_ALL = 'en_US.UTF-8'
+        LANG = 'en_US.UTF-8'
+
+        // Scheme based on flavor
+        SCHEME = "VroongFriends-${params.FLAVOR.toUpperCase()}"
+
+        // Bundle identifier based on flavor
+        BUNDLE_ID = getBundleId(params.FLAVOR)
+
+        // Credentials
+        APPLE_ID = credentials('apple-id')
+        TEAM_ID = credentials('team-id')
+        MATCH_PASSWORD = credentials('match-password')
+
+        // API endpoints based on flavor
+        API_ENDPOINT = getApiEndpoint(params.FLAVOR)
+
+        // Slack
+        SLACK_WEBHOOK = credentials('slack-webhook-ios')
+        SLACK_CHANNEL = getSlackChannel(params.FLAVOR)
+    }
+
+    options {
+        timestamps()
+        timeout(time: 90, unit: 'MINUTES')
+        buildDiscarder(logRotator(
+            numToKeepStr: '50',
+            artifactNumToKeepStr: '10'
+        ))
+        skipDefaultCheckout()
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    // Custom checkout for specific branch
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: params.BRANCH]],
+                        doGenerateSubmoduleConfigurations: false,
+                        extensions: [
+                            [$class: 'CleanBeforeCheckout'],
+                            [$class: 'SubmoduleOption',
+                             disableSubmodules: false,
+                             parentCredentials: true,
+                             recursiveSubmodules: true,
+                             reference: '',
+                             trackingSubmodules: false]
+                        ],
+                        submoduleCfg: [],
+                        userRemoteConfigs: [[
+                            credentialsId: 'github-ssh',
+                            url: 'git@github.com:vroong/friends-ios.git'
+                        ]]
+                    ])
+                }
+            }
+        }
+
+        stage('Setup Environment') {
+            steps {
+                script {
+                    echo "🔧 Setting up environment for ${params.FLAVOR}..."
+
+                    // Select Xcode
+                    sh "sudo xcode-select -s /Applications/Xcode_${XCODE_VERSION}.app"
+
+                    // Ruby dependencies
+                    sh '''
+                        bundle config set --local path 'vendor/bundle'
+                        bundle install
+                    '''
+
+                    // CocoaPods
+                    sh 'bundle exec pod install --repo-update'
+
+                    // Clean if requested
+                    if (params.CLEAN_BUILD) {
+                        sh 'bundle exec fastlane clean'
+                    }
+                }
+            }
+        }
+
+        stage('Configure') {
+            steps {
+                script {
+                    echo "⚙️ Configuring ${params.FLAVOR} environment..."
+
+                    // Generate environment config
+                    sh """
+                        cat > Config/Environment.swift << EOF
+                        import Foundation
+
+                        struct Environment {
+                            static let shared = Environment()
+
+                            let flavor = Flavor.${params.FLAVOR}
+                            let apiBaseUrl = "${API_ENDPOINT}"
+                            let buildType = "${params.BUILD_TYPE}"
+                            let buildNumber = "${env.BUILD_NUMBER}"
+                            let gitCommit = "${env.GIT_COMMIT}"
+                        }
+                        EOF
+                    """
+
+                    // Update Info.plist with build info
+                    sh """
+                        /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${env.BUILD_NUMBER}" \
+                            VroongFriends/Resources/Info.plist
+                    """
+                }
+            }
+        }
+
+        stage('Certificates') {
+            steps {
+                script {
+                    echo "🔐 Syncing certificates for ${params.FLAVOR}..."
+
+                    def matchType = getMatchType(params.BUILD_TYPE)
+
+                    withCredentials([
+                        string(credentialsId: 'match-git-url', variable: 'MATCH_GIT_URL')
+                    ]) {
+                        sh """
+                            bundle exec fastlane match ${matchType} \
+                                --app_identifier ${BUNDLE_ID} \
+                                --readonly true \
+                                --verbose
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Lint') {
+            when {
+                expression { params.RUN_TESTS == true }
+            }
+            steps {
+                script {
+                    echo "🔍 Running SwiftLint..."
+                    sh 'bundle exec fastlane lint || true'
+
+                    // Capture SwiftLint results
+                    recordIssues(
+                        enabledForFailure: true,
+                        tools: [swiftLint(pattern: 'build/swiftlint.xml')]
+                    )
+                }
+            }
+        }
+
+        stage('Unit Tests') {
+            when {
+                expression { params.RUN_TESTS == true }
+            }
+            steps {
+                script {
+                    echo "🧪 Running unit tests for ${params.FLAVOR}..."
+
+                    try {
+                        sh """
+                            bundle exec fastlane test \
+                                scheme:${SCHEME} \
+                                configuration:${params.BUILD_TYPE.capitalize()}
+                        """
+                    } catch (Exception e) {
+                        currentBuild.result = 'UNSTABLE'
+                        echo "Tests failed but continuing build: ${e.message}"
+                    }
+                }
+            }
+            post {
+                always {
+                    // Publish test results
+                    junit(
+                        testResults: 'build/test/*.junit',
+                        allowEmptyResults: false
+                    )
+
+                    // Publish coverage
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'build/coverage',
+                        reportFiles: 'index.html',
+                        reportName: "Coverage Report - ${params.FLAVOR}"
+                    ])
+                }
+            }
+        }
+
+        stage('Build IPA') {
+            steps {
+                script {
+                    echo "🔨 Building ${params.FLAVOR} - ${params.BUILD_TYPE}..."
+
+                    def exportMethod = getExportMethod(params.BUILD_TYPE)
+
+                    sh """
+                        bundle exec fastlane build_app \
+                            workspace:VroongFriends.xcworkspace \
+                            scheme:${SCHEME} \
+                            configuration:${params.BUILD_TYPE.capitalize()} \
+                            output_directory:build/${params.FLAVOR} \
+                            output_name:VroongFriends-${params.FLAVOR}-${env.BUILD_NUMBER}.ipa \
+                            export_method:${exportMethod} \
+                            include_symbols:true \
+                            include_bitcode:false
+                    """
+                }
+            }
+        }
+
+        stage('Deploy') {
+            when {
+                expression {
+                    params.BUILD_TYPE in ['testflight', 'appstore'] ||
+                    (params.BUILD_TYPE == 'release' && params.FLAVOR.startsWith('qa'))
+                }
+            }
+            steps {
+                script {
+                    echo "🚀 Deploying ${params.FLAVOR}..."
+
+                    switch(params.BUILD_TYPE) {
+                        case 'release':
+                            if (params.FLAVOR.startsWith('qa')) {
+                                // Deploy to Firebase
+                                deployToFirebase(params.FLAVOR)
+                            }
+                            break
+
+                        case 'testflight':
+                            // Deploy to TestFlight
+                            deployToTestFlight(params.FLAVOR)
+                            break
+
+                        case 'appstore':
+                            // Deploy to App Store
+                            input message: 'Deploy to App Store?', ok: 'Deploy'
+                            deployToAppStore()
+                            break
+                    }
+                }
+            }
+        }
+
+        stage('Archive') {
+            steps {
+                script {
+                    echo "📦 Archiving artifacts..."
+
+                    // Archive IPA
+                    archiveArtifacts(
+                        artifacts: "build/${params.FLAVOR}/*.ipa",
+                        fingerprint: true,
+                        allowEmptyArchive: false
+                    )
+
+                    // Archive dSYMs
+                    archiveArtifacts(
+                        artifacts: "build/${params.FLAVOR}/*.dSYM.zip",
+                        fingerprint: true,
+                        allowEmptyArchive: true
+                    )
+
+                    // Archive logs
+                    archiveArtifacts(
+                        artifacts: "build/*.log",
+                        fingerprint: false,
+                        allowEmptyArchive: true
+                    )
+                }
+            }
+        }
+
+        stage('Notify') {
+            steps {
+                script {
+                    def buildInfo = [
+                        flavor: params.FLAVOR,
+                        type: params.BUILD_TYPE,
+                        version: getVersionNumber(),
+                        build: env.BUILD_NUMBER,
+                        branch: params.BRANCH,
+                        commit: env.GIT_COMMIT?.take(7)
+                    ]
+
+                    notifySlack(buildInfo, 'success')
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            script {
+                echo "✅ Build successful!"
+                updateBuildStatus('SUCCESS')
+            }
+        }
+
+        failure {
+            script {
+                echo "❌ Build failed!"
+
+                def buildInfo = [
+                    flavor: params.FLAVOR,
+                    type: params.BUILD_TYPE,
+                    branch: params.BRANCH,
+                    build: env.BUILD_NUMBER
+                ]
+
+                notifySlack(buildInfo, 'failure')
+                updateBuildStatus('FAILURE')
+            }
+        }
+
+        unstable {
+            script {
+                echo "⚠️ Build unstable!"
+                updateBuildStatus('UNSTABLE')
+            }
+        }
+
+        always {
+            script {
+                // Clean workspace
+                echo "🧹 Cleaning up..."
+                sh 'bundle exec fastlane clean || true'
+
+                // Generate build report
+                generateBuildReport()
+            }
+        }
+    }
+}
+
+// Helper Functions
+
+def getBundleId(flavor) {
+    def bundleIds = [
+        'dev1': 'com.vroong.friends.dev1',
+        'qa1': 'com.vroong.friends.qa1',
+        'qa2': 'com.vroong.friends.qa2',
+        'qa3': 'com.vroong.friends.qa3',
+        'qa4': 'com.vroong.friends.qa4',
+        'prod': 'com.vroong.friends'
+    ]
+    return bundleIds[flavor]
+}
+
+def getApiEndpoint(flavor) {
+    def endpoints = [
+        'dev1': 'https://dev1-api.vroong.com',
+        'qa1': 'https://qa1-api.vroong.com',
+        'qa2': 'https://qa2-api.vroong.com',
+        'qa3': 'https://qa3-api.vroong.com',
+        'qa4': 'https://qa4-api.vroong.com',
+        'prod': 'https://api.vroong.com'
+    ]
+    return endpoints[flavor]
+}
+
+def getSlackChannel(flavor) {
+    if (flavor == 'prod') {
+        return '#ios-releases'
+    } else if (flavor.startsWith('qa')) {
+        return '#ios-qa'
+    } else {
+        return '#ios-dev'
+    }
+}
+
+def getMatchType(buildType) {
+    switch(buildType) {
+        case 'debug':
+            return 'development'
+        case 'release':
+        case 'testflight':
+        case 'appstore':
+            return 'appstore'
+        default:
+            return 'adhoc'
+    }
+}
+
+def getExportMethod(buildType) {
+    switch(buildType) {
+        case 'debug':
+            return 'development'
+        case 'release':
+            return 'ad-hoc'
+        case 'testflight':
+        case 'appstore':
+            return 'app-store'
+        default:
+            return 'development'
+    }
+}
+
+def deployToFirebase(flavor) {
+    withCredentials([
+        string(credentialsId: 'firebase-app-id-' + flavor, variable: 'FIREBASE_APP_ID'),
+        string(credentialsId: 'firebase-token', variable: 'FIREBASE_TOKEN')
+    ]) {
+        sh """
+            firebase appdistribution:distribute \
+                build/${flavor}/*.ipa \
+                --app ${FIREBASE_APP_ID} \
+                --token ${FIREBASE_TOKEN} \
+                --groups "qa-testers" \
+                --release-notes "Build #${env.BUILD_NUMBER} from ${params.BRANCH}"
+        """
+    }
+}
+
+def deployToTestFlight(flavor) {
+    sh """
+        bundle exec fastlane upload_to_testflight \
+            ipa:build/${flavor}/*.ipa \
+            skip_waiting_for_build_processing:true
+    """
+}
+
+def deployToAppStore() {
+    sh """
+        bundle exec fastlane upload_to_app_store \
+            ipa:build/prod/*.ipa \
+            submit_for_review:false
+    """
+}
+
+def notifySlack(buildInfo, status) {
+    def color = status == 'success' ? 'good' : 'danger'
+    def emoji = status == 'success' ? '✅' : '❌'
+
+    slackSend(
+        channel: env.SLACK_CHANNEL,
+        color: color,
+        message: """
+            ${emoji} *Build ${status.capitalize()}*
+            *Flavor:* ${buildInfo.flavor}
+            *Type:* ${buildInfo.type}
+            *Build:* #${buildInfo.build}
+            *Branch:* ${buildInfo.branch}
+            ${buildInfo.version ? "*Version:* ${buildInfo.version}" : ""}
+            ${buildInfo.commit ? "*Commit:* ${buildInfo.commit}" : ""}
+            *Job:* ${env.JOB_NAME}
+            [View Build](${env.BUILD_URL})
+        """,
+        webhookUrl: env.SLACK_WEBHOOK
+    )
+}
+
+def updateBuildStatus(status) {
+    // Update GitHub/GitLab status
+    if (env.CHANGE_ID) {
+        updateGitHubCommitStatus(
+            status: status,
+            context: "jenkins/${params.FLAVOR}",
+            description: "Build ${status.toLowerCase()} for ${params.FLAVOR}"
+        )
+    }
+}
+
+def generateBuildReport() {
+    // Generate and save build report
+    def report = """
+    Build Report
+    ============
+    Flavor: ${params.FLAVOR}
+    Type: ${params.BUILD_TYPE}
+    Build Number: ${env.BUILD_NUMBER}
+    Branch: ${params.BRANCH}
+    Commit: ${env.GIT_COMMIT}
+    Started: ${currentBuild.startTimeInMillis}
+    Duration: ${currentBuild.duration} ms
+    Result: ${currentBuild.result}
+    """
+
+    writeFile(file: 'build/report.txt', text: report)
+    archiveArtifacts(artifacts: 'build/report.txt', allowEmptyArchive: true)
+}
+
+def getVersionNumber() {
+    return sh(
+        script: "agvtool what-marketing-version -terse1",
+        returnStdout: true
+    ).trim()
+}

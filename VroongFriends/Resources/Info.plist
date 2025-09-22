@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- App Information -->
+    <key>CFBundleDevelopmentRegion</key>
+    <string>ko_KR</string>
+    <key>CFBundleDisplayName</key>
+    <string>부릉프렌즈</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>$(PRODUCT_NAME)</string>
+    <key>CFBundlePackageType</key>
+    <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+
+    <!-- App Transport Security -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <false/>
+        <key>NSExceptionDomains</key>
+        <dict>
+            <key>vroong.com</key>
+            <dict>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+                <key>NSTemporaryExceptionAllowsInsecureHTTPLoads</key>
+                <false/>
+                <key>NSExceptionMinimumTLSVersion</key>
+                <string>TLSv1.2</string>
+            </dict>
+            <key>vroong-friends.com</key>
+            <dict>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+                <key>NSTemporaryExceptionAllowsInsecureHTTPLoads</key>
+                <false/>
+                <key>NSExceptionMinimumTLSVersion</key>
+                <string>TLSv1.2</string>
+            </dict>
+        </dict>
+    </dict>
+
+    <!-- Permission Descriptions -->
+
+    <!-- Location Permissions -->
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>부릉프렌즈가 배달 서비스를 제공하기 위해 백그라운드에서도 위치 정보가 필요합니다. 위치 정보는 고객에게 실시간 배달 현황을 제공하는 데 사용됩니다.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>부릉프렌즈가 배달 서비스를 제공하기 위해 위치 정보가 필요합니다. 위치 정보는 주문 픽업 및 배달 경로 안내에 사용됩니다.</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>부릉프렌즈가 배달 중에도 정확한 위치 추적을 위해 항상 위치 정보가 필요합니다.</string>
+
+    <!-- Camera Permission -->
+    <key>NSCameraUsageDescription</key>
+    <string>배달 완료 사진을 촬영하기 위해 카메라 접근이 필요합니다.</string>
+
+    <!-- Photo Library Permissions -->
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>배달 증명 사진을 선택하기 위해 사진 라이브러리 접근이 필요합니다.</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>촬영한 배달 사진을 저장하기 위해 사진 라이브러리 접근이 필요합니다.</string>
+
+    <!-- Microphone Permission (for voice chat if needed) -->
+    <key>NSMicrophoneUsageDescription</key>
+    <string>고객과의 음성 통화를 위해 마이크 접근이 필요합니다.</string>
+
+    <!-- Contacts Permission (if needed for customer contacts) -->
+    <key>NSContactsUsageDescription</key>
+    <string>고객 연락처를 쉽게 저장하고 관리하기 위해 연락처 접근이 필요합니다.</string>
+
+    <!-- Push Notifications -->
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>audio</string>
+        <string>location</string>
+        <string>remote-notification</string>
+        <string>fetch</string>
+        <string>processing</string>
+    </array>
+
+    <!-- URL Schemes -->
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>vroongfriends</string>
+            </array>
+            <key>CFBundleURLName</key>
+            <string>com.vroong.friends</string>
+        </dict>
+        <!-- Kakao URL Scheme -->
+        <dict>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>kakao$(KAKAO_APP_KEY)</string>
+            </array>
+        </dict>
+    </array>
+
+    <!-- SwiftUI Scene Configuration -->
+    <key>UIApplicationSceneManifest</key>
+    <dict>
+        <key>UIApplicationSupportsMultipleScenes</key>
+        <false/>
+        <key>UISceneConfigurations</key>
+        <dict>
+            <key>UIWindowSceneSessionRoleApplication</key>
+            <array>
+                <dict>
+                    <key>UISceneConfigurationName</key>
+                    <string>Default Configuration</string>
+                    <key>UISceneDelegateClassName</key>
+                    <string></string>
+                </dict>
+            </array>
+        </dict>
+    </dict>
+
+    <!-- Launch Screen for SwiftUI -->
+    <key>UILaunchScreen</key>
+    <dict></dict>
+
+    <!-- Required Device Capabilities -->
+    <key>UIRequiredDeviceCapabilities</key>
+    <array>
+        <string>armv7</string>
+        <string>gps</string>
+        <string>location-services</string>
+    </array>
+
+    <!-- Status Bar -->
+    <key>UIStatusBarStyle</key>
+    <string>UIStatusBarStyleLightContent</string>
+    <key>UIViewControllerBasedStatusBarAppearance</key>
+    <true/>
+
+    <!-- Orientation -->
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+    </array>
+    <key>UISupportedInterfaceOrientations~ipad</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationPortraitUpsideDown</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+
+    <!-- iOS Version -->
+    <key>MinimumOSVersion</key>
+    <string>17.0</string>
+
+    <!-- User Activity Types (for Handoff) -->
+    <key>NSUserActivityTypes</key>
+    <array>
+        <string>com.vroong.friends.order.details</string>
+        <string>com.vroong.friends.chat</string>
+    </array>
+
+    <!-- ITSAppUsesNonExemptEncryption -->
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
+
+    <!-- Third Party SDKs -->
+
+    <!-- Naver Map -->
+    <key>NMFClientId</key>
+    <string>$(NAVER_MAP_CLIENT_ID)</string>
+
+    <!-- Kakao -->
+    <key>KAKAO_APP_KEY</key>
+    <string>$(KAKAO_APP_KEY)</string>
+
+    <!-- LSApplicationQueriesSchemes for Kakao -->
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>kakaokompassauth</string>
+        <string>kakaolink</string>
+    </array>
+</dict>
+</plist>
